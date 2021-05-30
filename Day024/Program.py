@@ -1,12 +1,12 @@
 import argparse
 
 class node:
-    def __init__(self, value, left=None, right=None, parent=None) -> None:
+    def __init__(self, value, left=None, right=None) -> None:
         self.value = value
         self.left = left
         self.right = right
-        self.parent = parent
         self.locked = False
+        self.parent = None
         if left == None and right == None:
             self.frozen = False
         elif left == None:
@@ -15,6 +15,9 @@ class node:
             self.frozen = self.left.locked
         else:
             self.frozen = self.left.locked or self.right.locked
+
+    def set_parent(self, parent):
+        self.parent = parent
 
     def freeze(self):
         self.frozen = True
@@ -43,20 +46,28 @@ class node:
             self.locked = True
             if self.parent != None:
                 self.parent.freeze()
+            return True
+        return False
 
     def unlock(self):
         if not self.frozen:
             self.locked = False
             if self.parent != None:
                 self.parent.unfreeze()
+            return True
+        return False
 
 def build_node(index, numbers):
     size = len(numbers)
     value = numbers[index]
     right = None if index * 2 + 2 >= size else build_node(index * 2 + 2, numbers)
     left = None if index * 2 + 1 >= size else build_node(index * 2 + 1, numbers)
-    parent = None if index == 0 else (index - 1) // 2
-    return node(value, left, right, parent)
+    new_node = node(value, left, right)
+    if right != None:
+        right.set_parent(new_node)
+    if left != None:
+        left.set_parent(new_node)
+    return new_node
 
 def main():
     parser = argparse.ArgumentParser()
@@ -64,6 +75,11 @@ def main():
     args = parser.parse_args()
 
     root = build_node(0, args.values)
+
+    print(root.left.left.lock())
+
+    print(root.right.lock())
+    print(root.lock())
 
 if __name__ == '__main__':
     main()
