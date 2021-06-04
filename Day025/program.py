@@ -1,25 +1,14 @@
 import argparse
 
-def match(re, word):
-    if len(re) == 0:
-        return len(word) == 0
+def match(s, p):
+    if len(p) == 0:
+        return len(s) == 0
+    first_match = len(s) > 0 and (p[0] == s[0] or p[0] == '.')
+    
+    if len(p) >= 2 and p[1] == '*':
+        return match(s, p[2:]) or (first_match and match(s[1:], p))
     else:
-        if re[0] == '.':
-            if (len(word) == 0):
-                return False
-            return match(re[1:], word[1:])
-        elif re[0] == '*':
-            if len(re) == 1:
-                return True
-            matching = False
-            for i in range(len(word)):
-                matching = matching or match(re[1:], word[i:])
-            return matching
-        else:
-            if re[0] != word[0]:
-                return False
-            else:
-                return match(re[1:], word[1:])
+        return first_match and match(s[1:], p[1:])
 
 def main():
     parser = argparse.ArgumentParser()
@@ -27,7 +16,7 @@ def main():
     args = parser.parse_args()
     re = args.inputs[0]
     word = args.inputs[1]
-    print(match(re, word))
+    print(match(word, re))
 
 if __name__ == '__main__':
     main()
